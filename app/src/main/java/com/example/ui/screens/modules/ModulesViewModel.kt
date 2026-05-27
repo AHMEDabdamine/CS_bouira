@@ -15,15 +15,15 @@ class ModulesViewModel(private val repository: CsbouiraRepository) : ViewModel()
     private val _yearTitle = MutableStateFlow("")
     val yearTitle: StateFlow<String> = _yearTitle
 
-    private val _isLoading = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    fun loadYearModules(yearName: String) {
+    fun loadYearModules(yearName: String, semester: Int) {
         _yearTitle.value = yearName
         _isLoading.value = true
         viewModelScope.launch {
-            repository.getModulesFlow(yearName).collect {
-                _modules.value = it
+            repository.getModulesFlow(yearName).collect { list ->
+                _modules.value = list
                 _isLoading.value = false
             }
         }

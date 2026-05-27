@@ -6,6 +6,7 @@ import com.example.data.repository.CsbouiraRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
 
 class ViewerViewModel(private val repository: CsbouiraRepository) : ViewModel() {
     private val _localPath = MutableStateFlow<String?>(null)

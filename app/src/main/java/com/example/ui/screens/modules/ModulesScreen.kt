@@ -1,175 +1,142 @@
 package com.example.ui.screens.modules
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.outlined.Book
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Module
-import com.example.ui.theme.AccentGreen
-import com.example.ui.theme.CardDark
-import com.example.ui.theme.CosmicDark
-import com.example.ui.theme.TextPrimary
-import com.example.ui.theme.TextSecondary
+import com.example.ui.components.IconBadge
+import com.example.ui.components.SectionLabel
+import com.example.ui.components.ShimmerBox
+import com.example.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModulesScreen(
     viewModel: ModulesViewModel,
     yearName: String,
+    semester: Int,
     onModuleClick: (String, Int, String) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LaunchedEffect(yearName) {
-        viewModel.loadYearModules(yearName)
+    LaunchedEffect(yearName, semester) {
+        viewModel.loadYearModules(yearName, semester)
     }
 
     val modules by viewModel.modules.collectAsState()
     val yearTitle by viewModel.yearTitle.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    var selectedSemesterTab by remember { mutableIntStateOf(0) }
-
-    val filteredModules = remember(modules, selectedSemesterTab) {
-        val targetSemester = if (selectedSemesterTab == 0) 1 else 2
-        modules.filter { it.semester == targetSemester }
+    val filteredModules = remember(modules, semester) {
+        modules.filter { it.semester == semester }
     }
-
-    val hasS1 = modules.any { it.semester == 1 }
-    val hasS2 = modules.any { it.semester == 2 }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = yearTitle.ifEmpty { "Academic Year" },
+                        text = yearTitle.ifEmpty { "Chargement..." },
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = onBackClick,
-                        modifier = Modifier.testTag("modules_back_button")
-                    ) {
+                    IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back to home",
-                            tint = AccentGreen
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Retour",
+                            tint = TextSecondary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = CosmicDark)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = CosmicDark,
+        containerColor = Background,
         modifier = modifier
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(CosmicDark)
-        ) {
-            if (hasS1 && hasS2) {
-                TabRow(
-                    selectedTabIndex = selectedSemesterTab,
-                    containerColor = CosmicDark,
-                    contentColor = AccentGreen,
-                    indicator = { tabPositions ->
-                        TabRowDefaults.SecondaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedSemesterTab]),
-                            color = AccentGreen
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth().testTag("semester_tab_row")
-                ) {
-                    Tab(
-                        selected = selectedSemesterTab == 0,
-                        onClick = { selectedSemesterTab = 0 },
-                        text = {
-                            Text(
-                                text = "Semester 1",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = if (selectedSemesterTab == 0) AccentGreen else TextSecondary
-                            )
-                        },
-                        modifier = Modifier.testTag("tab_semester_1")
-                    )
-                    Tab(
-                        selected = selectedSemesterTab == 1,
-                        onClick = { selectedSemesterTab = 1 },
-                        text = {
-                            Text(
-                                text = "Semester 2",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = if (selectedSemesterTab == 1) AccentGreen else TextSecondary
-                            )
-                        },
-                        modifier = Modifier.testTag("tab_semester_2")
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = AccentGreen)
-                }
-            } else if (filteredModules.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Outlined.Book,
-                            contentDescription = "No courses",
-                            tint = TextSecondary,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "No subjects reported in this semester yet.",
-                            color = TextSecondary,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp)
+            ) {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(5) {
+                        ShimmerBox(modifier = Modifier.fillMaxWidth().height(80.dp))
                     }
                 }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-                    modifier = Modifier.weight(1f).testTag("modules_list")
-                ) {
-                    items(filteredModules) { module ->
-                        ModuleCard(
+            }
+        } else if (filteredModules.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Default.School,
+                        contentDescription = null,
+                        tint = TextSecondary,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "Aucune matière",
+                        color = TextSecondary,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
+            ) {
+                item {
+                    SectionLabel(text = "SEMESTRE $semester")
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                itemsIndexed(filteredModules) { index, module ->
+                    var visible by remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) { visible = true }
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = fadeIn(tween(250 + index * 50)) +
+                                slideInVertically(tween(250 + index * 50)) { it / 4 }
+                    ) {
+                        ModuleRowCard(
                             module = module,
-                            onClick = { onModuleClick(yearName, module.semester, module.name) }
+                            onClick = { onModuleClick(yearName, semester, module.name) }
                         )
                     }
                 }
@@ -179,54 +146,87 @@ fun ModulesScreen(
 }
 
 @Composable
-fun ModuleCard(
+private fun ModuleRowCard(
     module: Module,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
-    Card(
-        modifier = modifier
+    val (icon, accentColor, containerColor) = moduleIconInfo(module.name)
+
+    Row(
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .testTag("module_card_${module.id}"),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(14.dp)
+            .padding(vertical = 4.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+        IconBadge(
+            icon = icon,
+            accentColor = accentColor,
+            containerColor = containerColor
+        )
+        Spacer(modifier = Modifier.width(14.dp))
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .background(Surface, RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick)
+                .padding(16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFF222224)),
-                contentAlignment = Alignment.Center
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = module.name,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "${module.code} · Semestre ${module.semester}",
+                        fontSize = 13.sp,
+                        color = TextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 Icon(
-                    imageVector = Icons.Default.Book,
-                    contentDescription = "Subject Icon",
-                    tint = AccentGreen,
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = TextSecondary,
                     modifier = Modifier.size(20.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.width(14.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = module.name,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary,
-                    fontSize = 15.sp
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Semester ${module.semester}",
-                    color = TextSecondary,
-                    fontSize = 12.sp
-                )
-            }
         }
+    }
+}
+
+private data class ModuleIconInfo(
+    val icon: ImageVector,
+    val accent: Color,
+    val bg: Color
+)
+
+private fun moduleIconInfo(name: String): ModuleIconInfo {
+    val lower = name.lowercase()
+    return when {
+        "algo" in lower || "structure" in lower -> ModuleIconInfo(Icons.Default.AccountTree, CourseAccent, CourseBg)
+        "math" in lower || "algèbre" in lower || "analyse" in lower -> ModuleIconInfo(Icons.Default.Functions, CourseAccent, CourseBg)
+        "program" in lower || "java" in lower || "poo" in lower -> ModuleIconInfo(Icons.Default.Code, TdAccent, TdBg)
+        "base" in lower || "donnée" in lower || "bdd" in lower -> ModuleIconInfo(Icons.Default.Storage, TdAccent, TdBg)
+        "réseau" in lower || "reseau" in lower -> ModuleIconInfo(Icons.Default.Lan, CourseAccent, CourseBg)
+        "système" in lower || "exploitation" in lower || "os" in lower -> ModuleIconInfo(Icons.Default.Memory, TestAccent, TestBg)
+        "architectur" in lower -> ModuleIconInfo(Icons.Default.DeveloperBoard, ExamAccent, ExamBg)
+        "recherche" in lower || "opérationnel" in lower -> ModuleIconInfo(Icons.Default.Calculate, CourseAccent, CourseBg)
+        "anglais" in lower || "terminologie" in lower -> ModuleIconInfo(Icons.Default.Translate, ColorOther, SurfaceElevated)
+        "probabilité" in lower || "statistique" in lower -> ModuleIconInfo(Icons.Default.BarChart, ResumeAccent, ResumeBg)
+        "méthode" in lower || "numérique" in lower -> ModuleIconInfo(Icons.Default.Functions, ExamAccent, ExamBg)
+        "conception" in lower || "uml" in lower -> ModuleIconInfo(Icons.Default.AccountTree, ResumeAccent, ResumeBg)
+        "sécurité" in lower || "securite" in lower || "cyber" in lower -> ModuleIconInfo(Icons.Default.Security, TestAccent, TestBg)
+        "ia" in lower || "intelligence" in lower || "machine" in lower || "apprentissage" in lower -> ModuleIconInfo(Icons.Default.Psychology, CourseAccent, CourseBg)
+        "compilation" in lower || "compilateur" in lower -> ModuleIconInfo(Icons.Default.Terminal, TdAccent, TdBg)
+        "génie" in lower || "logiciel" in lower -> ModuleIconInfo(Icons.Default.Construction, ExamAccent, ExamBg)
+        "gouvernance" in lower || "management" in lower || "projet" in lower -> ModuleIconInfo(Icons.Default.Business, CourseAccent, CourseBg)
+        else -> ModuleIconInfo(Icons.Default.School, ColorOther, SurfaceElevated)
     }
 }

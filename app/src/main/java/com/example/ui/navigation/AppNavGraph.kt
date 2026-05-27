@@ -33,8 +33,6 @@ fun AppNavGraph(
     factory: ViewModelFactory,
     modifier: Modifier = Modifier
 ) {
-    val t = 250
-
     NavHost(
         navController = navController,
         startDestination = "home",
@@ -48,30 +46,31 @@ fun AppNavGraph(
             val hvm: HomeViewModel = viewModel(factory = factory)
             HomeScreen(
                 viewModel = hvm,
-                onYearClick = { yearName ->
-                    navController.navigate("modules/${Uri.encode(yearName)}")
+                onYearClick = { yearName, semester ->
+                    navController.navigate("modules/${Uri.encode(yearName)}/$semester")
                 },
-                onSearchClick = {
-                    navController.navigate("search")
-                },
-                onBookmarksClick = {
-                    navController.navigate("bookmarks")
-                }
+                onSearchClick = { navController.navigate("search") },
+                onBookmarksClick = { navController.navigate("bookmarks") }
             )
         }
 
         composable(
-            route = "modules/{yearName}",
-            arguments = listOf(navArgument("yearName") { type = NavType.StringType })
+            route = "modules/{yearName}/{semester}",
+            arguments = listOf(
+                navArgument("yearName") { type = NavType.StringType },
+                navArgument("semester") { type = NavType.IntType }
+            )
         ) { backStackEntry ->
             val yearName = Uri.decode(backStackEntry.arguments?.getString("yearName") ?: "")
+            val semester = backStackEntry.arguments?.getInt("semester") ?: 1
             val mvm: ModulesViewModel = viewModel(factory = factory)
             ModulesScreen(
                 viewModel = mvm,
                 yearName = yearName,
-                onModuleClick = { yName, semester, modName ->
+                semester = semester,
+                onModuleClick = { yName, sem, modName ->
                     navController.navigate(
-                        "files/${Uri.encode(yName)}/$semester/${Uri.encode(modName)}"
+                        "files/${Uri.encode(yName)}/$sem/${Uri.encode(modName)}"
                     )
                 },
                 onBackClick = { navController.popBackStack() }

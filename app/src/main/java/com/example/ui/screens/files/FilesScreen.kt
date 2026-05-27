@@ -1,37 +1,72 @@
 package com.example.ui.screens.files
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.FileItem
+import com.example.ui.components.IconBadge
+import com.example.ui.components.ShimmerBox
 import com.example.ui.theme.*
 
-data class CategoryTab(
-    val id: String,
+private data class FileTypeInfo(
     val label: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val accent: Color,
+    val bg: Color
 )
+
+private val fileTypeMap = mapOf(
+    "course" to FileTypeInfo("COURS", Icons.Default.MenuBook, CourseAccent, CourseBg),
+    "exams" to FileTypeInfo("EXAMENS", Icons.Default.Quiz, ExamAccent, ExamBg),
+    "TD&TP" to FileTypeInfo("TD / TP", Icons.Default.Handyman, TdAccent, TdBg),
+    "tests" to FileTypeInfo("TESTS", Icons.Default.Assignment, TestAccent, TestBg),
+    "resume" to FileTypeInfo("RÉSUMÉS", Icons.Default.Summarize, ResumeAccent, ResumeBg)
+)
+
+fun fileTypeAccent(extension: String, categoryType: String): Pair<ImageVector, Color> {
+    return when (extension) {
+        "pdf" -> Icons.Default.PictureAsPdf to ColorPdf
+        "jpg", "jpeg", "png", "gif", "webp", "bmp" -> Icons.Default.Image to Secondary
+        "doc", "docx" -> Icons.Default.Description to Primary
+        "ppt", "pptx" -> Icons.Default.Slideshow to ColorZip
+        "xls", "xlsx" -> Icons.Default.TableChart to ColorDoc
+        "zip", "rar", "7z", "tar", "gz" -> Icons.Default.Folder to ColorZip
+        "py", "java", "kt", "js", "ts", "cpp", "c", "h", "rs", "go" -> Icons.Default.Code to ColorCode
+        "txt" -> Icons.Default.TextSnippet to ColorOther
+        "mp4", "avi", "mkv", "mov" -> Icons.Default.Videocam to ColorCode
+        "mp3", "wav", "flac" -> Icons.Default.Audiotrack to ColorZip
+        else -> when (categoryType) {
+            "course" -> Icons.Default.Description to Primary
+            "exams" -> Icons.Default.Quiz to ExamAccent
+            "resume" -> Icons.Default.Summarize to ResumeAccent
+            else -> Icons.Default.InsertDriveFile to ColorOther
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,164 +88,239 @@ fun FilesScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val bookmarkedIds by viewModel.bookmarkedIds.collectAsState()
     val downloadedUrls by viewModel.downloadedUrls.collectAsState()
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
 
-    val categories = listOf(
-        CategoryTab("course", "Courses", Icons.Default.Description),
-        CategoryTab("exams", "Exams", Icons.Default.Quiz),
-        CategoryTab("resume", "Synthèse", Icons.Default.Summarize),
-        CategoryTab("TD&TP", "TD & TP", Icons.AutoMirrored.Filled.Assignment),
-        CategoryTab("tests", "Tests", Icons.AutoMirrored.Filled.Grading)
-    )
+    val filteredFiles = remember(files, selectedCategory) {
+        if (selectedCategory == null) files
+        else files.filter { it.type == selectedCategory }
+    }
 
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val currentCategory = categories.getOrElse(selectedTabIndex) { categories[0] }
-
-    val filteredFiles = remember(files, currentCategory) {
-        files.filter { it.type.equals(currentCategory.id, ignoreCase = true) }
+    val groupedFiles = remember(filteredFiles) {
+        filteredFiles.groupBy { it.type }.entries
+            .sortedBy { (type, _) ->
+                when (type) {
+                    "course" -> 0; "exams" -> 1; "TD&TP" -> 2; "resume" -> 3; "tests" -> 4
+                    else -> 5
+                }
+            }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = moduleTitle.ifEmpty { "Loading..." },
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "Course Resources & Archive",
-                            color = TextSecondary,
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
+                    Text(
+                        text = moduleTitle.ifEmpty { "Chargement..." },
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = onBackClick,
-                        modifier = Modifier.testTag("files_back_button")
-                    ) {
+                    IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = AccentGreen
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Retour",
+                            tint = TextSecondary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CosmicDark
-                )
+                actions = {
+                    TextButton(onClick = { /* batch download */ }) {
+                        Text(
+                            text = "Tout télécharger",
+                            color = Primary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = CosmicDark,
+        containerColor = Background,
         modifier = modifier
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(CosmicDark)
-        ) {
-            ScrollableTabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = CosmicDark,
-                contentColor = AccentGreen,
-                edgePadding = 16.dp,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                        color = AccentGreen
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().testTag("files_category_tab_row")
-            ) {
-                categories.forEachIndexed { index, cat ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = cat.icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = if (selectedTabIndex == index) AccentGreen else TextSecondary
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = cat.label,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (selectedTabIndex == index) AccentGreen else TextSecondary
-                                )
-                            }
-                        },
-                        modifier = Modifier.testTag("category_tab_${cat.id}")
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            CategorySelector(
+                selectedCategory = selectedCategory,
+                files = files,
+                onCategorySelected = { viewModel.selectCategory(it) }
+            )
 
             if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = AccentGreen)
+                Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(5) {
+                            ShimmerBox(modifier = Modifier.fillMaxWidth().height(80.dp))
+                        }
+                    }
                 }
             } else if (filteredFiles.isEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(32.dp)
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            imageVector = currentCategory.icon,
-                            contentDescription = "Empty",
-                            tint = BorderDark,
-                            modifier = Modifier.size(64.dp)
+                            Icons.Default.Description,
+                            contentDescription = null,
+                            tint = TextSecondary,
+                            modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "No files found in this category",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
+                            "Aucun fichier dans cette catégorie",
                             color = TextSecondary,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Check other categories for available resources.",
-                            color = BorderDark,
-                            fontSize = 12.sp,
-                            textAlign = TextAlign.Center
+                            fontSize = 16.sp
                         )
                     }
                 }
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-                    modifier = Modifier.weight(1f).testTag("files_list")
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    items(filteredFiles) { file ->
-                        val isBookmarked = bookmarkedIds.contains(file.id)
-                        val isDownloaded = downloadedUrls.contains(file.url)
-                        FileCard(
-                            file = file,
-                            isBookmarked = isBookmarked,
-                            isDownloaded = isDownloaded,
-                            onFileClick = { onFileClick(file) },
-                            onBookmarkToggle = { viewModel.toggleBookmark(file) },
-                            onDownload = { viewModel.downloadFile(file) },
-                            onDeleteDownload = { viewModel.deleteDownload(file.url) }
+                    groupedFiles.forEach { (type, typeFiles) ->
+                        val info = fileTypeMap[type] ?: return@forEach
+
+                        if (selectedCategory == null) {
+                            item {
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = Background
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = info.label,
+                                            color = TextLabel,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 1.5.sp
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(4.dp))
+                                                .background(info.accent.copy(alpha = 0.18f))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = "${typeFiles.size}",
+                                                color = info.accent,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        itemsIndexed(typeFiles) { index, file ->
+                            var visible by remember { mutableStateOf(false) }
+                            LaunchedEffect(Unit) { visible = true }
+                            AnimatedVisibility(
+                                visible = visible,
+                                enter = fadeIn(tween(250 + index * 40)) +
+                                        slideInVertically(tween(250 + index * 40)) { it / 4 }
+                            ) {
+                                FileRowCard(
+                                    file = file,
+                                    info = info,
+                                    isBookmarked = bookmarkedIds.contains(file.id),
+                                    isDownloaded = downloadedUrls.contains(file.url),
+                                    onClick = { onFileClick(file) },
+                                    onBookmarkToggle = { viewModel.toggleBookmark(file) },
+                                    onDownloadToggle = {
+                                        if (downloadedUrls.contains(file.url)) {
+                                            viewModel.deleteDownload(file.url)
+                                        } else {
+                                            viewModel.downloadFile(file)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private data class CategoryTab(
+    val type: String?,
+    val label: String,
+    val accent: Color
+)
+
+private val categoryTabs = listOf(
+    CategoryTab(null, "Tout", TextLabel),
+    CategoryTab("course", "Cours", CourseAccent),
+    CategoryTab("exams", "Examens", ExamAccent),
+    CategoryTab("resume", "Résumé", ResumeAccent),
+    CategoryTab("TD&TP", "TD & TP", TdAccent),
+    CategoryTab("tests", "Tests", TestAccent)
+)
+
+@Composable
+private fun CategorySelector(
+    selectedCategory: String?,
+    files: List<FileItem>,
+    onCategorySelected: (String?) -> Unit
+) {
+    val categoryCounts = remember(files) {
+        files.groupBy { it.type }.mapValues { it.value.size }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        categoryTabs.forEach { tab ->
+            val count = if (tab.type == null) files.size else categoryCounts[tab.type] ?: 0
+            val isSelected = selectedCategory == tab.type
+
+            Surface(
+                onClick = { onCategorySelected(tab.type) },
+                shape = RoundedCornerShape(20.dp),
+                color = if (isSelected) tab.accent else Surface,
+                tonalElevation = if (isSelected) 0.dp else 2.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = tab.label,
+                        color = if (isSelected) Color.White else TextPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (isSelected) Color.White.copy(alpha = 0.25f) else tab.accent.copy(alpha = 0.15f))
+                            .padding(horizontal = 6.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = "$count",
+                            color = if (isSelected) Color.White else tab.accent,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -220,112 +330,88 @@ fun FilesScreen(
 }
 
 @Composable
-fun FileCard(
+private fun FileRowCard(
     file: FileItem,
+    info: FileTypeInfo,
     isBookmarked: Boolean,
     isDownloaded: Boolean,
-    onFileClick: () -> Unit,
+    onClick: () -> Unit,
     onBookmarkToggle: () -> Unit,
-    onDownload: () -> Unit,
-    onDeleteDownload: () -> Unit,
-    modifier: Modifier = Modifier
+    onDownloadToggle: () -> Unit
 ) {
     val extension = file.name.substringAfterLast('.', "").lowercase()
-    val (icon, color) = fileTypeIcon(extension, file.type)
+    val (icon, color) = fileTypeAccent(extension, file.type)
 
-    Card(
-        modifier = modifier
+    Row(
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onFileClick)
-            .testTag("file_card_${file.id}"),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(12.dp)
+            .padding(vertical = 4.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
+        IconBadge(
+            icon = icon,
+            accentColor = color,
+            containerColor = SurfaceElevated
+        )
+        Spacer(modifier = Modifier.width(14.dp))
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .background(Surface, RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick)
+                .padding(16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(color.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = file.name,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary,
-                    fontSize = 14.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (extension.isNotEmpty()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = file.name,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = extension.uppercase(),
+                        fontSize = 11.sp,
                         color = color,
-                        fontSize = 10.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(
+                    onClick = onDownloadToggle,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    if (isDownloaded) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Téléchargé",
+                            tint = Success,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = "Télécharger",
+                            tint = TextSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = onBookmarkToggle,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Bookmark,
+                        contentDescription = "Favori",
+                        tint = if (isBookmarked) Primary else TextSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
-
-            IconButton(
-                onClick = { if (isDownloaded) onDeleteDownload() else onDownload() },
-                modifier = Modifier.size(32.dp).testTag("download_toggle_${file.id}")
-            ) {
-                Icon(
-                    imageVector = if (isDownloaded) Icons.Default.CheckCircle else Icons.Default.Download,
-                    contentDescription = if (isDownloaded) "Downloaded" else "Download",
-                    tint = if (isDownloaded) AccentGreen else TextSecondary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            IconButton(
-                onClick = onBookmarkToggle,
-                modifier = Modifier.size(32.dp).testTag("bookmark_toggle_${file.id}")
-            ) {
-                Icon(
-                    imageVector = if (isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
-                    contentDescription = "Bookmark",
-                    tint = if (isBookmarked) AccentGreen else TextSecondary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
-
-fun fileTypeIcon(extension: String, categoryType: String): Pair<ImageVector, Color> {
-    return when (extension) {
-        "pdf" -> Icons.Default.PictureAsPdf to ColorPdf
-        "jpg", "jpeg", "png", "gif", "webp", "bmp" -> Icons.Default.Image to ColorImage
-        "doc", "docx" -> Icons.Default.Description to ColorDoc
-        "ppt", "pptx" -> Icons.Default.Description to ColorZip
-        "xls", "xlsx" -> Icons.Default.TableChart to ColorDoc
-        "zip", "rar", "7z", "tar", "gz" -> Icons.Default.Folder to ColorZip
-        "py", "java", "kt", "js", "ts", "cpp", "c", "h", "rs", "go" -> Icons.Default.Code to ColorCode
-        "txt" -> Icons.AutoMirrored.Filled.TextSnippet to ColorOther
-        "mp4", "avi", "mkv", "mov" -> Icons.Default.Videocam to ColorImage
-        "mp3", "wav", "flac" -> Icons.Default.Audiotrack to ColorZip
-        else -> when (categoryType) {
-            "course" -> Icons.Default.Description to ColorDoc
-            "exams" -> Icons.Default.Quiz to ColorZip
-            "resume" -> Icons.Default.Summarize to ColorDoc
-            else -> Icons.AutoMirrored.Filled.InsertDriveFile to ColorOther
         }
     }
 }

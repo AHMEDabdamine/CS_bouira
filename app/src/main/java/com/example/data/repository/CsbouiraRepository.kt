@@ -111,9 +111,9 @@ class CsbouiraRepository(
 
     fun getFilesFlow(yearName: String, semester: Int, moduleName: String): Flow<List<FileItem>> = flow {
         val yearResp = fetchYear(yearName) ?: run { emit(emptyList()); return@flow }
-        val semKey = HardcodedData.semesterMap.entries.find { it.value == semester }?.key ?: run {
-            emit(emptyList()); return@flow
-        }
+        val semKey = yearResp.subfolders?.entries?.find { (key, _) ->
+            HardcodedData.getSemester(key) == semester
+        }?.key ?: run { emit(emptyList()); return@flow }
         val modFolder = yearResp.subfolders?.get(semKey)?.subfolders?.get(moduleName)
             ?: run { emit(emptyList()); return@flow }
 

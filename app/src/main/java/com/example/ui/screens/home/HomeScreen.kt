@@ -1,10 +1,20 @@
 package com.example.ui.screens.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
@@ -12,203 +22,262 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Year
-import com.example.ui.theme.AccentGreen
-import com.example.ui.theme.BorderDark
-import com.example.ui.theme.CardDark
-import com.example.ui.theme.CosmicDark
-import com.example.ui.theme.TextPrimary
-import com.example.ui.theme.TextSecondary
+import com.example.ui.components.CsBouiraBottomNav
+import com.example.ui.components.HeroCard
+import com.example.ui.components.IconBadge
+import com.example.ui.components.NavItem
+import com.example.ui.components.SectionLabel
+import com.example.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onYearClick: (String) -> Unit,
+    onYearClick: (String, Int) -> Unit,
     onSearchClick: () -> Unit,
     onBookmarksClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val years by viewModel.years.collectAsState()
+    val selectedYear by viewModel.selectedYear.collectAsState()
+
+    val activeNavItem = remember { NavItem.Home }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = "CS Bouira Logo",
-                            tint = AccentGreen,
-                            modifier = Modifier.size(28.dp).testTag("logo_icon")
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "CS Bouira",
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    }
+                    Text(
+                        text = "CS Bouira",
+                        color = Primary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
                 },
                 actions = {
-                    IconButton(
-                        onClick = { viewModel.refresh() },
-                        modifier = Modifier.testTag("refresh_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh",
-                            tint = AccentGreen
-                        )
+                    IconButton(onClick = { viewModel.refresh() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = TextSecondary)
                     }
-                    IconButton(
-                        onClick = onSearchClick,
-                        modifier = Modifier.testTag("search_hub_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search Resources",
-                            tint = AccentGreen
-                        )
+                    IconButton(onClick = onSearchClick) {
+                        Icon(Icons.Default.Search, contentDescription = "Search", tint = TextSecondary)
                     }
-                    IconButton(
-                        onClick = onBookmarksClick,
-                        modifier = Modifier.testTag("bookmarks_hub_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Bookmark,
-                            contentDescription = "Saved Bookmarks",
-                            tint = AccentGreen
-                        )
+                    IconButton(onClick = onBookmarksClick) {
+                        Icon(Icons.Default.Bookmark, contentDescription = "Bookmarks", tint = TextSecondary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = CosmicDark)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = CosmicDark,
+        bottomBar = {
+            CsBouiraBottomNav(
+                selectedItem = activeNavItem,
+                onItemSelected = { item ->
+                    when (item) {
+                        NavItem.Favoris -> onBookmarksClick()
+                        NavItem.Search -> onSearchClick()
+                        else -> { }
+                    }
+                }
+            )
+        },
+        containerColor = Background,
         modifier = modifier
     ) { innerPadding ->
-        Column(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp, end = 16.dp,
+                top = 8.dp, bottom = 16.dp
+            ),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(CosmicDark)
-                .padding(horizontal = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(CardDark)
-                    .padding(20.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "Bouira Computer Science",
-                        fontWeight = FontWeight.Bold,
-                        color = AccentGreen,
-                        fontSize = 18.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Access clean, categorized academic notes, exams, synthèses, and fiches instantly.",
-                        color = TextSecondary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+            item(span = { GridItemSpan(2) }) {
+                HeroCard(
+                    icon = Icons.Default.School,
+                    title = "CS Bouira",
+                    subtitle = "Documents Universitaires",
+                    buttonLabel = "Explorer →",
+                    onButtonClick = { /* scroll down */ },
+                    extraContent = {
+                        val dateText = viewModel.currentDate
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = dateText,
+                            color = OnPrimary.copy(alpha = 0.7f),
+                            fontSize = 13.sp
+                        )
+                    }
+                )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            item(span = { GridItemSpan(2) }) {
+                Spacer(modifier = Modifier.height(4.dp))
+                SectionLabel(text = "ANNÉES")
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-            Text(
-                text = "Select Academic Year",
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 12.dp)
+            items(years) { year ->
+                YearCard(
+                    year = year,
+                    isSelected = selectedYear == year.name,
+                    onClick = { viewModel.onYearTap(year.name) }
+                )
+            }
+
+            item(span = { GridItemSpan(2) }) {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+
+        AnimatedVisibility(
+            visible = selectedYear != null,
+            enter = fadeIn(tween(200)) + slideInVertically(tween(200)),
+            exit = fadeOut(tween(150)) + slideOutVertically(tween(150))
+        ) {
+            SemesterSelector(
+                yearName = selectedYear ?: "",
+                onSemesterClick = { sem ->
+                    selectedYear?.let { onYearClick(it, sem) }
+                    viewModel.onSemesterSelected()
+                },
+                onDismiss = { viewModel.onYearTap("") }
             )
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                modifier = Modifier.weight(1f).testTag("years_list")
-            ) {
-                items(years) { year ->
-                    YearCard(
-                        year = year,
-                        onClick = { onYearClick(year.name) }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-fun YearCard(
+private fun YearCard(
     year: Year,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    isSelected: Boolean,
+    onClick: () -> Unit
 ) {
-    Card(
-        modifier = modifier
+    val bg by animateColorAsState(
+        targetValue = if (isSelected) SurfaceElevated else Surface,
+        animationSpec = tween(200),
+        label = "yearCardBg"
+    )
+
+    Box(
+        modifier = Modifier
             .fillMaxWidth()
+            .height(130.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(bg)
             .clickable(onClick = onClick)
-            .testTag("year_card_${year.id}"),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(16.dp)
+            .padding(14.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column {
+            IconBadge(
+                icon = Icons.Default.School,
+                accentColor = Primary,
+                containerColor = PrimaryDim,
+                iconSize = 20
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = year.name,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+        }
+        Text(
+            text = year.id.take(2).uppercase(),
+            fontSize = 48.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextLabel.copy(alpha = 0.15f),
+            modifier = Modifier.align(Alignment.BottomEnd)
+        )
+    }
+}
+
+@Composable
+private fun SemesterSelector(
+    yearName: String,
+    onSemesterClick: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Background.copy(alpha = 0.7f))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = Modifier
+                .padding(32.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = SurfaceElevated,
+            tonalElevation = 0.dp
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0x1181C784)),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.padding(28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = year.id,
+                    text = yearName,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = AccentGreen,
-                    fontSize = 18.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = year.name,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    fontSize = 16.sp
+                    color = TextPrimary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = year.description,
-                    color = TextSecondary,
-                    fontSize = 12.sp,
-                    maxLines = 2
+                    text = "Choisissez un semestre",
+                    fontSize = 13.sp,
+                    color = TextSecondary
                 )
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SemesterPill("Semestre 1", onClick = { onSemesterClick(1) })
+                    SemesterPill("Semestre 2", onClick = { onSemesterClick(2) })
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun RowScope.SemesterPill(
+    label: String,
+    onClick: () -> Unit
+) {
+    val gradient = Brush.horizontalGradient(listOf(Primary, Color(0xFF0A3FCC)))
+
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .height(56.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(gradient)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = OnPrimary,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp
+        )
     }
 }

@@ -15,14 +15,14 @@ class FilesViewModel(private val repository: CsbouiraRepository) : ViewModel() {
     private val _files = MutableStateFlow<List<FileItem>>(emptyList())
     val files: StateFlow<List<FileItem>> = _files
 
+    private val _selectedCategory = MutableStateFlow<String?>(null)
+    val selectedCategory: StateFlow<String?> = _selectedCategory
+
     private val _moduleTitle = MutableStateFlow("")
     val moduleTitle: StateFlow<String> = _moduleTitle
 
-    private val _isLoading = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _downloadProgress = MutableStateFlow<Map<String, Float>>(emptyMap())
-    val downloadProgress: StateFlow<Map<String, Float>> = _downloadProgress
 
     val bookmarkedIds: StateFlow<Set<String>> = repository.getBookmarkedFiles()
         .map { list -> list.map { it.id }.toSet() }
@@ -39,6 +39,10 @@ class FilesViewModel(private val repository: CsbouiraRepository) : ViewModel() {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptySet()
         )
+
+    fun selectCategory(category: String?) {
+        _selectedCategory.value = category
+    }
 
     fun loadModuleFiles(yearName: String, semester: Int, moduleName: String) {
         _moduleTitle.value = moduleName
@@ -59,11 +63,7 @@ class FilesViewModel(private val repository: CsbouiraRepository) : ViewModel() {
 
     fun downloadFile(file: FileItem) {
         viewModelScope.launch {
-            _downloadProgress.value = _downloadProgress.value + (file.url to 0f)
-            repository.downloadFile(file) { progress ->
-                _downloadProgress.value = _downloadProgress.value + (file.url to progress)
-            }
-            _downloadProgress.value = _downloadProgress.value - file.url
+            repository.downloadFile(file)
         }
     }
 

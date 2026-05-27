@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
@@ -22,7 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.FileItem
-import com.example.ui.screens.files.fileTypeIcon
+import com.example.ui.screens.files.fileTypeAccent
 import com.example.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +44,7 @@ fun SearchScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Global Search",
+                        text = "Recherche globale",
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
                         style = MaterialTheme.typography.titleMedium
@@ -57,21 +58,21 @@ fun SearchScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = AccentGreen
+                            tint = Primary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = CosmicDark)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = CosmicDark,
+        containerColor = Background,
         modifier = modifier
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(CosmicDark)
+                .background(Background)
                 .padding(horizontal = 16.dp)
         ) {
             OutlinedTextField(
@@ -79,7 +80,7 @@ fun SearchScreen(
                 onValueChange = { viewModel.updateQuery(it) },
                 placeholder = {
                     Text(
-                        text = "Search papers, courses, summary fiches...",
+                        text = "Rechercher des cours, examens, fiches...",
                         color = TextSecondary,
                         fontSize = 14.sp
                     )
@@ -88,7 +89,7 @@ fun SearchScreen(
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Search icon",
-                        tint = AccentGreen,
+                        tint = Primary,
                         modifier = Modifier.size(20.dp)
                     )
                 },
@@ -110,10 +111,10 @@ fun SearchScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentGreen,
-                    unfocusedBorderColor = BorderDark,
-                    focusedContainerColor = CardDark,
-                    unfocusedContainerColor = CardDark,
+                    focusedBorderColor = Primary,
+                    unfocusedBorderColor = Border,
+                    focusedContainerColor = SurfaceElevated,
+                    unfocusedContainerColor = SurfaceElevated,
                     focusedTextColor = TextPrimary,
                     unfocusedTextColor = TextPrimary
                 ),
@@ -135,12 +136,12 @@ fun SearchScreen(
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = null,
-                                tint = BorderDark,
+                                tint = Border,
                                 modifier = Modifier.size(64.dp)
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Start typing to search documents",
+                                text = "Commencez à taper pour chercher",
                                 color = TextSecondary,
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.Center
@@ -158,7 +159,7 @@ fun SearchScreen(
                             modifier = Modifier.padding(32.dp)
                         ) {
                             Text(
-                                text = "No results found for \"$query\"",
+                                text = "Aucun résultat pour \"$query\"",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextSecondary,
@@ -166,8 +167,8 @@ fun SearchScreen(
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "Double check your keyword or search broader terms (e.g., 'POO', 'course', 'exam').",
-                                color = BorderDark,
+                                text = "Vérifiez votre mot-clé ou élargissez votre recherche (ex: 'POO', 'cours', 'examen').",
+                                color = TextLabel,
                                 fontSize = 12.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -176,9 +177,9 @@ fun SearchScreen(
                 }
                 else -> {
                     Text(
-                        text = "Results found: ${results.size}",
+                        text = "Résultats: ${results.size}",
                         fontWeight = FontWeight.SemiBold,
-                        color = AccentGreen,
+                        color = Primary,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
@@ -219,14 +220,14 @@ private fun SearchFileCard(
     onDeleteDownload: () -> Unit
 ) {
     val extension = file.name.substringAfterLast('.', "").lowercase()
-    val (icon, color) = fileTypeIcon(extension, file.type)
+    val (icon, color) = fileTypeAccent(extension, file.type)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onFileClick)
             .testTag("search_file_card_${file.id}"),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
+        colors = CardDefaults.cardColors(containerColor = SurfaceElevated),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
@@ -270,7 +271,7 @@ private fun SearchFileCard(
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = file.type,
-                    color = AccentGreen,
+                    color = Primary,
                     fontSize = 11.sp
                 )
             }
@@ -282,7 +283,7 @@ private fun SearchFileCard(
                 Icon(
                     imageVector = if (isDownloaded) Icons.Default.CheckCircle else Icons.Default.Download,
                     contentDescription = if (isDownloaded) "Downloaded" else "Download",
-                    tint = if (isDownloaded) AccentGreen else TextSecondary,
+                    tint = if (isDownloaded) Success else TextSecondary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -292,9 +293,9 @@ private fun SearchFileCard(
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
-                    imageVector = if (isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
+                    imageVector = Icons.Default.Bookmark,
                     contentDescription = "Bookmark",
-                    tint = if (isBookmarked) AccentGreen else TextSecondary,
+                    tint = if (isBookmarked) Primary else TextSecondary,
                     modifier = Modifier.size(20.dp)
                 )
             }
