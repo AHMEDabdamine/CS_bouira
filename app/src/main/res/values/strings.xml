@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CS Bouira</string>
+    <string name="view_online">View Online</string>
+    <string name="download">Download</string>
+    <string name="share_file">Share Resource</string>
+    <string name="copy_link">Copy Resource Link</string>
+    <string name="copied_to_clipboard">Copied to clipboard!</string>
+    <string name="loading_content">Loading content…</string>
+    <string name="error_fetching">Something went wrong</string>
+    <string name="retry">Retry</string>
+    <string name="total_files">Files</string>
+    <string name="total_modules">Modules</string>
+    <string name="total_uploaders">Contributors</string>
+    <string name="modules_count">%d modules</string>
+    <string name="files_count">%d files</string>
+    <string name="uploader">%s</string>
+    <string name="module_desc_fallback">Comprehensive module covering theory, practical exercises, and assessments.</string>
+</resources>

@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">علوم الحاسوب البويرة</string>
+    <string name="home_title">فضاء طالب علوم الحاسوب البويرة</string>
+    <string name="search_hint">ابحث عن الدروس، الملفات، المقاييس الدراسية…</string>
+    <string name="stats_title">إحصائيات الموارد التعليمية</string>
+    <string name="total_files">ملفات المنهج</string>
+    <string name="total_modules">قائمة المقاييس</string>
+    <string name="total_uploaders">المساهمون في الرفع</string>
+    <string name="cached_data_label">يتم الآن عرض البيانات المخزنة محلياً</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="empty_bookmarks">تظهر دروسك ومستنداتك المحفوظة هنا. اضغط على أيقونة النجمة لحفظ أي ملف.</string>
+    <string name="no_results">لم نجد أي دروس أو وحدات مطابقة.</string>
+    <string name="share_file">عمل مشاركة للملف</string>
+    <string name="copy_link">نسخ الرابط المباشر</string>
+    <string name="copied_to_clipboard">تم نسخ الرابط للحافظة بنجاح!</string>
+    <string name="download">تحميل المستند</string>
+    <string name="open_in_browser">פתח في المتصفح</string>
+    <string name="explorer_heading">الأعوام والمقاييس</string>
+    <string name="files_heading">الملفات البيداغوجية</string>
+    
+    <string name="tab_home">الرئيسية</string>
+    <string name="tab_search">البحث الذكي</string>
+    <string name="tab_bookmarks">المفضلة</string>
+    
+    <string name="modules_count">%1$d مقاييس</string>
+    <string name="files_count">%1$d ملفات بيداغوجية</string>
+    <string name="view_online">معاينة الملف عبر الإنترنت</string>
+    <string name="file_description">تفاصيل الملحق وخيارات التنزيل</string>
+    
+    <string name="no_internet_msg">لا يوجد اتصال بالإنترنت حالياً. يتم تشغيل وضع عدم الاتصال.</string>
+    <string name="loading_content">جاري جلب الملفات والدروس الدراسية…</string>
+    <string name="error_fetching">فشل الاتصال بالخادم. يرجى التحقق من اتصالك.</string>
+    <string name="search_prompt">ابدأ الكتابة للبحث الفوري عن الملفات والمناهج الدراسية…</string>
+    <string name="uploader">تم الرفع بواسطة %1$s</string>
+    <string name="module_desc_fallback">انقر لتصفح المحاضرات، الأعمال الموجهة، والامتحانات الخاصة بهذا المقياس.</string>
+</resources>

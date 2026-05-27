@@ -1,0 +1,75 @@
+package com.example.ui.screens.files
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.data.model.FileItem
+import com.example.data.repository.CsbouiraRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+class FilesViewModel(private val repository: CsbouiraRepository) : ViewModel() {
+    private val _files = MutableStateFlow<List<FileItem>>(emptyList())
+    val files: StateFlow<List<FileItem>> = _files
+
+    private val _moduleTitle = MutableStateFlow("")
+    val moduleTitle: StateFlow<String> = _moduleTitle
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _downloadProgress = MutableStateFlow<Map<String, Float>>(emptyMap())
+    val downloadProgress: StateFlow<Map<String, Float>> = _downloadProgress
+
+    val bookmarkedIds: StateFlow<Set<String>> = repository.getBookmarkedFiles()
+        .map { list -> list.map { it.id }.toSet() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptySet()
+        )
+
+    val downloadedUrls: StateFlow<Set<String>> = repository.getDownloadsFlow()
+        .map { list -> list.map { it.url }.toSet() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptySet()
+        )
+
+    fun loadModuleFiles(yearName: String, semester: Int, moduleName: String) {
+        _moduleTitle.value = moduleName
+        _isLoading.value = true
+        viewModelScope.launch {
+            repository.getFilesFlow(yearName, semester, moduleName).collect {
+                _files.value = it
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun toggleBookmark(file: FileItem) {
+        viewModelScope.launch {
+            repository.toggleBookmark(file)
+        }
+    }
+
+    fun downloadFile(file: FileItem) {
+        viewModelScope.launch {
+            _downloadProgress.value = _downloadProgress.value + (file.url to 0f)
+            repository.downloadFile(file) { progress ->
+                _downloadProgress.value = _downloadProgress.value + (file.url to progress)
+            }
+            _downloadProgress.value = _downloadProgress.value - file.url
+        }
+    }
+
+    fun deleteDownload(url: String) {
+        viewModelScope.launch {
+            repository.deleteDownload(url)
+        }
+    }
+}

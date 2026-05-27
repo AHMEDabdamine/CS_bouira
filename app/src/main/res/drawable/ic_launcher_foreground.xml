@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Academic Cap / Tech Icon representation in centered 108x108 viewport -->
+    <path
+        android:fillColor="#81C784"
+        android:pathData="M54,32L24,44l30,12l24,-9.6V62h6V44z" />
+    <path
+        android:fillColor="#81C784"
+        android:pathData="M34,55v12c0,5.52 9,10 20,10s20,-4.48 20,-10V55l-20,8z" />
+</vector>
