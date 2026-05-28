@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,19 +18,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.ui.theme.*
 
 enum class NavItem(
-    val label: String,
+    @StringRes val labelResId: Int,
     val activeIcon: ImageVector,
     val inactiveIcon: ImageVector
 ) {
-    Home("Accueil", Icons.Filled.Home, Icons.Outlined.Home),
-    Search("", Icons.Filled.Search, Icons.Filled.Search),
-    Favoris("Favoris", Icons.Filled.Bookmark, Icons.Filled.Bookmark)
+    Home(R.string.tab_home, Icons.Filled.Home, Icons.Outlined.Home),
+    Search(R.string.tab_search, Icons.Filled.Search, Icons.Filled.Search),
+    Favoris(R.string.tab_bookmarks, Icons.Filled.Bookmark, Icons.Filled.Bookmark)
 }
 
 @Composable
@@ -68,7 +71,7 @@ fun CsBouiraBottomNav(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Search,
-                    contentDescription = "Rechercher",
+                    contentDescription = stringResource(R.string.search),
                     tint = OnPrimary,
                     modifier = Modifier.size(26.dp)
                 )
@@ -93,6 +96,7 @@ private fun RowScope.NavItemButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val label = stringResource(item.labelResId)
     Column(
         modifier = modifier
             .clickable(onClick = onClick)
@@ -101,13 +105,13 @@ private fun RowScope.NavItemButton(
     ) {
         Icon(
             imageVector = if (selected) item.activeIcon else item.inactiveIcon,
-            contentDescription = item.label,
+            contentDescription = label,
             tint = if (selected) Primary else TextSecondary,
             modifier = Modifier.size(22.dp)
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
-            text = item.label,
+            text = label,
             color = if (selected) Primary else TextSecondary,
             fontSize = 10.sp,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal

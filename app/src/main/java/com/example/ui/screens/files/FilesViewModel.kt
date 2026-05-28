@@ -24,6 +24,9 @@ class FilesViewModel(private val repository: CsbouiraRepository) : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _downloadProgress = MutableStateFlow<Map<String, Float>>(emptyMap())
+    val downloadProgress: StateFlow<Map<String, Float>> = _downloadProgress
+
     val bookmarkedIds: StateFlow<Set<String>> = repository.getBookmarkedFiles()
         .map { list -> list.map { it.id }.toSet() }
         .stateIn(
@@ -63,7 +66,11 @@ class FilesViewModel(private val repository: CsbouiraRepository) : ViewModel() {
 
     fun downloadFile(file: FileItem) {
         viewModelScope.launch {
-            repository.downloadFile(file)
+            _downloadProgress.value = _downloadProgress.value + (file.url to 0f)
+            repository.downloadFile(file) { progress ->
+                _downloadProgress.value = _downloadProgress.value + (file.url to progress)
+            }
+            _downloadProgress.value = _downloadProgress.value - file.url
         }
     }
 

@@ -27,6 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import com.example.data.model.FileItem
 import com.example.ui.components.IconBadge
 import com.example.ui.components.ShimmerBox
@@ -109,8 +112,8 @@ fun FilesScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = moduleTitle.ifEmpty { "Chargement..." },
+                        Text(
+                            text = moduleTitle.ifEmpty { stringResource(R.string.loading_dots) },
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
                         style = MaterialTheme.typography.titleMedium,
@@ -122,7 +125,7 @@ fun FilesScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Retour",
+                            contentDescription = stringResource(R.string.back),
                             tint = TextSecondary
                         )
                     }
@@ -130,7 +133,7 @@ fun FilesScreen(
                 actions = {
                     TextButton(onClick = { /* batch download */ }) {
                         Text(
-                            text = "Tout télécharger",
+                            text = stringResource(R.string.download_all),
                             color = Primary,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold
@@ -172,7 +175,7 @@ fun FilesScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            "Aucun fichier dans cette catégorie",
+                            stringResource(R.string.no_files_in_category),
                             color = TextSecondary,
                             fontSize = 16.sp
                         )
@@ -259,17 +262,17 @@ fun FilesScreen(
 
 private data class CategoryTab(
     val type: String?,
-    val label: String,
+    @StringRes val labelResId: Int,
     val accent: Color
 )
 
 private val categoryTabs = listOf(
-    CategoryTab(null, "Tout", TextLabel),
-    CategoryTab("course", "Cours", CourseAccent),
-    CategoryTab("exams", "Examens", ExamAccent),
-    CategoryTab("resume", "Résumé", ResumeAccent),
-    CategoryTab("TD&TP", "TD & TP", TdAccent),
-    CategoryTab("tests", "Tests", TestAccent)
+    CategoryTab(null, R.string.all, TextLabel),
+    CategoryTab("course", R.string.courses, CourseAccent),
+    CategoryTab("exams", R.string.exams, ExamAccent),
+    CategoryTab("resume", R.string.summary, ResumeAccent),
+    CategoryTab("TD&TP", R.string.td_tp, TdAccent),
+    CategoryTab("tests", R.string.tests, TestAccent)
 )
 
 @Composable
@@ -304,7 +307,7 @@ private fun CategorySelector(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = tab.label,
+                        text = stringResource(tab.labelResId),
                         color = if (isSelected) Color.White else TextPrimary,
                         fontSize = 13.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
@@ -387,14 +390,14 @@ private fun FileRowCard(
                     if (isDownloaded) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Téléchargé",
+                            contentDescription = stringResource(R.string.downloaded),
                             tint = Success,
                             modifier = Modifier.size(20.dp)
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Default.Download,
-                            contentDescription = "Télécharger",
+                            contentDescription = stringResource(R.string.to_download),
                             tint = TextSecondary,
                             modifier = Modifier.size(20.dp)
                         )
@@ -406,7 +409,7 @@ private fun FileRowCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Bookmark,
-                        contentDescription = "Favori",
+                        contentDescription = stringResource(R.string.favorite),
                         tint = if (isBookmarked) Primary else TextSecondary,
                         modifier = Modifier.size(20.dp)
                     )

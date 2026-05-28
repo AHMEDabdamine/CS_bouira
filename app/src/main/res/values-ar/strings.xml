@@ -1,36 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">علوم الحاسوب البويرة</string>
     <string name="home_title">فضاء طالب علوم الحاسوب البويرة</string>
-    <string name="search_hint">ابحث عن الدروس، الملفات، المقاييس الدراسية…</string>
+    <string name="search_hint">ابحث عن الدروس، الملفات، الموارد الدراسية…</string>
     <string name="stats_title">إحصائيات الموارد التعليمية</string>
-    <string name="total_files">ملفات المنهج</string>
-    <string name="total_modules">قائمة المقاييس</string>
-    <string name="total_uploaders">المساهمون في الرفع</string>
+    <string name="total_files">الملفات</string>
+    <string name="total_modules">المقاييس</string>
+    <string name="total_uploaders">المساهمون</string>
     <string name="cached_data_label">يتم الآن عرض البيانات المخزنة محلياً</string>
     <string name="retry">إعادة المحاولة</string>
     <string name="empty_bookmarks">تظهر دروسك ومستنداتك المحفوظة هنا. اضغط على أيقونة النجمة لحفظ أي ملف.</string>
     <string name="no_results">لم نجد أي دروس أو وحدات مطابقة.</string>
-    <string name="share_file">عمل مشاركة للملف</string>
+    <string name="share_file">مشاركة الملف</string>
     <string name="copy_link">نسخ الرابط المباشر</string>
     <string name="copied_to_clipboard">تم نسخ الرابط للحافظة بنجاح!</string>
     <string name="download">تحميل المستند</string>
-    <string name="open_in_browser">פתח في المتصفح</string>
+    <string name="open_in_browser">فتح في المتصفح</string>
     <string name="explorer_heading">الأعوام والمقاييس</string>
     <string name="files_heading">الملفات البيداغوجية</string>
-    
+
     <string name="tab_home">الرئيسية</string>
     <string name="tab_search">البحث الذكي</string>
     <string name="tab_bookmarks">المفضلة</string>
-    
+
     <string name="modules_count">%1$d مقاييس</string>
     <string name="files_count">%1$d ملفات بيداغوجية</string>
     <string name="view_online">معاينة الملف عبر الإنترنت</string>
-    <string name="file_description">تفاصيل الملحق وخيارات التنزيل</string>
-    
+    <string name="file_description">تفاصيل الملف وخيارات التنزيل</string>
+
     <string name="no_internet_msg">لا يوجد اتصال بالإنترنت حالياً. يتم تشغيل وضع عدم الاتصال.</string>
     <string name="loading_content">جاري جلب الملفات والدروس الدراسية…</string>
     <string name="error_fetching">فشل الاتصال بالخادم. يرجى التحقق من اتصالك.</string>
     <string name="search_prompt">ابدأ الكتابة للبحث الفوري عن الملفات والمناهج الدراسية…</string>
     <string name="uploader">تم الرفع بواسطة %1$s</string>
     <string name="module_desc_fallback">انقر لتصفح المحاضرات، الأعمال الموجهة، والامتحانات الخاصة بهذا المقياس.</string>
+
+    <string name="refresh">تحديث</string>
+    <string name="search">بحث</string>
+    <string name="bookmarks">المفضلة</string>
+    <string name="university_documents">الوثائق الجامعية</string>
+    <string name="explore">استكشف →</string>
+    <string name="years_section">الأعوام</string>
+    <string name="choose_semester">اختر فصلاً دراسياً</string>
+    <string name="semester_1">الفصل الأول</string>
+    <string name="semester_2">الفصل الثاني</string>
+    <string name="semester_label">الفصل %1$d</string>
+    <string name="loading_dots">جاري التحميل…</string>
+    <string name="no_modules">لا توجد مقاييس</string>
+    <string name="back">رجوع</string>
+    <string name="all">الكل</string>
+    <string name="courses">المحاضرات</string>
+    <string name="exams">الامتحانات</string>
+    <string name="summary">ملخصات</string>
+    <string name="td_tp">التطبيق والتمرين</string>
+    <string name="tests">الاختبارات</string>
+    <string name="no_files_in_category">لا توجد ملفات في هذه الفئة</string>
+    <string name="download_all">تحميل الكل</string>
+    <string name="downloaded">تم التحميل</string>
+    <string name="to_download">تحميل</string>
+    <string name="favorite">مفضل</string>
+    <string name="global_search">بحث عام</string>
+    <string name="search_files_placeholder">ابحث عن محاضرات، امتحانات، ملخصات…</string>
+    <string name="start_typing">ابدأ الكتابة للبحث</string>
+    <string name="no_results_for">لا توجد نتائج لـ \"%1$s\"</string>
+    <string name="search_hint_detail">تحقق من كلمتك المفتاحية أو وسّع نطاق بحثك (مثال: \'POO\'، \'محاضرة\'، \'امتحان\').</string>
+    <string name="results_count">النتائج: %1$d</string>
+    <string name="favorites">المفضلة</string>
+    <string name="downloads">التحميلات</string>
+    <string name="no_items">لا توجد عناصر</string>
+    <string name="empty_favorites_desc">أضف مستندات إلى مفضلاتك\nأو قم بتحميلها للوصول إليها بسرعة.</string>
+    <string name="browse_modules">تصفح المقاييس</string>
+    <string name="recently_added">أُضيف مؤخراً</string>
+    <string name="remove">إزالة</string>
+    <string name="delete">حذف</string>
+    <string name="share">مشاركة</string>
+    <string name="page_format">صفحة %1$d</string>
+    <string name="file_not_found">الملف غير موجود</string>
+    <string name="cannot_read_file">لا يمكن قراءة هذا الملف</string>
+
+    <string name="language">اللغة</string>
+    <string name="language_english">English</string>
+    <string name="language_french">Français</string>
+    <string name="language_arabic">العربية</string>
+    <string name="previous_file">الملف السابق</string>
+    <string name="next_file">الملف التالي</string>
+    <string name="file_index">%1$d / %2$d</string>
+    <string name="zoom_in">تكبير</string>
+    <string name="zoom_out">تصغير</string>
+    <string name="zoom_reset">إعادة ضبط التكبير</string>
+    <string name="settings">الإعدادات</string>
+    <string name="viewer_settings">عارض الملفات</string>
+    <string name="show_nav_buttons">أزرار التنقل</string>
+    <string name="show_nav_buttons_desc">إظهار أسهم السابق/التالي للتنقل بين الملفات</string>
+    <string name="enable_pinch_zoom">تكبير بالسحب</string>
+    <string name="enable_pinch_zoom_desc">تكبير وتصغير الصور بإصبعين</string>
 </resources>

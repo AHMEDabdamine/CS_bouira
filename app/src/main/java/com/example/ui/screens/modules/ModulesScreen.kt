@@ -23,6 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.R
+import com.example.data.HardcodedData
 import com.example.data.model.Module
 import com.example.ui.components.IconBadge
 import com.example.ui.components.SectionLabel
@@ -55,8 +58,8 @@ fun ModulesScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = yearTitle.ifEmpty { "Chargement..." },
+                        Text(
+                            text = yearTitle.ifEmpty { stringResource(R.string.loading_dots) },
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
                         style = MaterialTheme.typography.titleMedium,
@@ -68,7 +71,7 @@ fun ModulesScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Retour",
+                            contentDescription = stringResource(R.string.back),
                             tint = TextSecondary
                         )
                     }
@@ -106,7 +109,7 @@ fun ModulesScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        "Aucune matière",
+                        stringResource(R.string.no_modules),
                         color = TextSecondary,
                         fontSize = 16.sp
                     )
@@ -122,7 +125,7 @@ fun ModulesScreen(
                 contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
             ) {
                 item {
-                    SectionLabel(text = "SEMESTRE $semester")
+                    SectionLabel(text = HardcodedData.getSemesterLabel(yearName, semester))
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
@@ -136,6 +139,7 @@ fun ModulesScreen(
                     ) {
                         ModuleRowCard(
                             module = module,
+                            yearName = yearName,
                             onClick = { onModuleClick(yearName, semester, module.name) }
                         )
                     }
@@ -148,6 +152,7 @@ fun ModulesScreen(
 @Composable
 private fun ModuleRowCard(
     module: Module,
+    yearName: String,
     onClick: () -> Unit
 ) {
     val (icon, accentColor, containerColor) = moduleIconInfo(module.name)
@@ -182,7 +187,7 @@ private fun ModuleRowCard(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "${module.code} · Semestre ${module.semester}",
+                        text = "${module.code} · ${HardcodedData.getSemesterLabel(yearName, module.semester)}",
                         fontSize = 13.sp,
                         color = TextSecondary,
                         maxLines = 1,

@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import com.example.data.model.FileItem
 import com.example.ui.screens.files.fileTypeAccent
 import com.example.ui.theme.*
@@ -44,7 +46,7 @@ fun SearchScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Recherche globale",
+                        text = stringResource(R.string.global_search),
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
                         style = MaterialTheme.typography.titleMedium
@@ -57,7 +59,7 @@ fun SearchScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                             tint = Primary
                         )
                     }
@@ -80,7 +82,7 @@ fun SearchScreen(
                 onValueChange = { viewModel.updateQuery(it) },
                 placeholder = {
                     Text(
-                        text = "Rechercher des cours, examens, fiches...",
+                        text = stringResource(R.string.search_files_placeholder),
                         color = TextSecondary,
                         fontSize = 14.sp
                     )
@@ -88,7 +90,7 @@ fun SearchScreen(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search icon",
+                        contentDescription = stringResource(R.string.search),
                         tint = Primary,
                         modifier = Modifier.size(20.dp)
                     )
@@ -101,7 +103,7 @@ fun SearchScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Clear",
+                                contentDescription = stringResource(R.string.search),
                                 tint = TextSecondary,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -141,7 +143,7 @@ fun SearchScreen(
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Commencez à taper pour chercher",
+                                text = stringResource(R.string.start_typing),
                                 color = TextSecondary,
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.Center
@@ -159,7 +161,7 @@ fun SearchScreen(
                             modifier = Modifier.padding(32.dp)
                         ) {
                             Text(
-                                text = "Aucun résultat pour \"$query\"",
+                                text = stringResource(R.string.no_results_for, query),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextSecondary,
@@ -167,7 +169,7 @@ fun SearchScreen(
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "Vérifiez votre mot-clé ou élargissez votre recherche (ex: 'POO', 'cours', 'examen').",
+                                text = stringResource(R.string.search_hint_detail),
                                 color = TextLabel,
                                 fontSize = 12.sp,
                                 textAlign = TextAlign.Center
@@ -177,7 +179,7 @@ fun SearchScreen(
                 }
                 else -> {
                     Text(
-                        text = "Résultats: ${results.size}",
+                        text = stringResource(R.string.results_count, results.size),
                         fontWeight = FontWeight.SemiBold,
                         color = Primary,
                         fontSize = 12.sp,
@@ -282,7 +284,7 @@ private fun SearchFileCard(
             ) {
                 Icon(
                     imageVector = if (isDownloaded) Icons.Default.CheckCircle else Icons.Default.Download,
-                    contentDescription = if (isDownloaded) "Downloaded" else "Download",
+                    contentDescription = if (isDownloaded) stringResource(R.string.downloaded) else stringResource(R.string.to_download),
                     tint = if (isDownloaded) Success else TextSecondary,
                     modifier = Modifier.size(20.dp)
                 )
@@ -294,7 +296,7 @@ private fun SearchFileCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Bookmark,
-                    contentDescription = "Bookmark",
+                    contentDescription = stringResource(R.string.favorite),
                     tint = if (isBookmarked) Primary else TextSecondary,
                     modifier = Modifier.size(20.dp)
                 )

@@ -2,11 +2,11 @@ package com.example.ui.screens.bookmarks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data.local.DownloadEntity
 import com.example.data.model.FileItem
 import com.example.data.repository.CsbouiraRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -18,12 +18,11 @@ class BookmarksViewModel(private val repository: CsbouiraRepository) : ViewModel
             initialValue = emptyList()
         )
 
-    val downloadedUrls: StateFlow<Set<String>> = repository.getDownloadsFlow()
-        .map { list -> list.map { it.url }.toSet() }
+    val downloads: StateFlow<List<DownloadEntity>> = repository.getDownloadsFlow()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptySet()
+            initialValue = emptyList()
         )
 
     fun toggleBookmark(file: FileItem) {

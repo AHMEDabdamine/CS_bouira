@@ -38,4 +38,15 @@ object HardcodedData {
     fun getYearDescription(name: String): String = yearDescriptions[name] ?: ""
     fun getYearId(name: String): String = yearIdMap[name] ?: name
     fun getSemester(semKey: String): Int? = semesterMap[semKey]
+
+    fun getGlobalSemester(yearName: String, localSemester: Int): Int {
+        val yearIndex = yearOrder.indexOf(yearName).coerceAtLeast(0)
+        return yearIndex * 2 + localSemester
+    }
+
+    fun getSemesterLabel(yearName: String, localSemester: Int): String {
+        val yearId = getYearId(yearName)
+        val globalSem = getGlobalSemester(yearName, localSemester)
+        return "$yearId S$globalSem"
+    }
 }

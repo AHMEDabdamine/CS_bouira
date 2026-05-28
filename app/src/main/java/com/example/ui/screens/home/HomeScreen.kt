@@ -1,5 +1,7 @@
 package com.example.ui.screens.home
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -18,9 +20,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,11 +32,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
+import com.example.data.HardcodedData
 import com.example.data.model.Year
+import com.example.i18n.LanguagePickerDialog
+import com.example.i18n.LocaleHelper
 import com.example.ui.components.CsBouiraBottomNav
 import com.example.ui.components.HeroCard
 import com.example.ui.components.IconBadge
@@ -47,12 +57,24 @@ fun HomeScreen(
     onYearClick: (String, Int) -> Unit,
     onSearchClick: () -> Unit,
     onBookmarksClick: () -> Unit,
+    onSettingsClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val years by viewModel.years.collectAsState()
     val selectedYear by viewModel.selectedYear.collectAsState()
 
     val activeNavItem = remember { NavItem.Home }
+    var showLanguagePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val currentLanguage = remember { LocaleHelper.getPersistedLanguage(context) }
+
+    if (showLanguagePicker) {
+        LanguagePickerDialog(
+            currentLanguage = currentLanguage,
+            onLanguageSelected = { LocaleHelper.setLanguage(context, it) },
+            onDismiss = { showLanguagePicker = false }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -66,14 +88,20 @@ fun HomeScreen(
                     )
                 },
                 actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings), tint = TextSecondary)
+                    }
+                    IconButton(onClick = { showLanguagePicker = true }) {
+                        Icon(Icons.Default.Language, contentDescription = stringResource(R.string.language), tint = TextSecondary)
+                    }
                     IconButton(onClick = { viewModel.refresh() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = TextSecondary)
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh), tint = TextSecondary)
                     }
                     IconButton(onClick = onSearchClick) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = TextSecondary)
+                        Icon(Icons.Default.Search, contentDescription = stringResource(R.string.search), tint = TextSecondary)
                     }
                     IconButton(onClick = onBookmarksClick) {
-                        Icon(Icons.Default.Bookmark, contentDescription = "Bookmarks", tint = TextSecondary)
+                        Icon(Icons.Default.Bookmark, contentDescription = stringResource(R.string.bookmarks), tint = TextSecondary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -109,10 +137,13 @@ fun HomeScreen(
             item(span = { GridItemSpan(2) }) {
                 HeroCard(
                     icon = Icons.Default.School,
-                    title = "CS Bouira",
-                    subtitle = "Documents Universitaires",
-                    buttonLabel = "Explorer →",
-                    onButtonClick = { /* scroll down */ },
+                    title = stringResource(R.string.app_name),
+                    subtitle = stringResource(R.string.university_documents),
+                    buttonLabel = stringResource(R.string.explore),
+                    onButtonClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://csbouira.xyz/"))
+                        context.startActivity(intent)
+                    },
                     extraContent = {
                         val dateText = viewModel.currentDate
                         Spacer(modifier = Modifier.height(8.dp))
@@ -127,7 +158,7 @@ fun HomeScreen(
 
             item(span = { GridItemSpan(2) }) {
                 Spacer(modifier = Modifier.height(4.dp))
-                SectionLabel(text = "ANNÉES")
+                SectionLabel(text = stringResource(R.string.years_section))
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
@@ -240,7 +271,7 @@ private fun SemesterSelector(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Choisissez un semestre",
+                    text = stringResource(R.string.choose_semester),
                     fontSize = 13.sp,
                     color = TextSecondary
                 )
@@ -249,8 +280,8 @@ private fun SemesterSelector(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    SemesterPill("Semestre 1", onClick = { onSemesterClick(1) })
-                    SemesterPill("Semestre 2", onClick = { onSemesterClick(2) })
+                    SemesterPill(HardcodedData.getSemesterLabel(yearName, 1), onClick = { onSemesterClick(1) })
+                    SemesterPill(HardcodedData.getSemesterLabel(yearName, 2), onClick = { onSemesterClick(2) })
                 }
             }
         }

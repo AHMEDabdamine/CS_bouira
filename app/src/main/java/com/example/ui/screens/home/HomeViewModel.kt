@@ -31,7 +31,11 @@ class HomeViewModel(private val repository: CsbouiraRepository) : ViewModel() {
     }
 
     fun onYearTap(yearName: String) {
-        _selectedYear.value = if (_selectedYear.value == yearName) null else yearName
+        _selectedYear.value = when {
+            yearName.isEmpty() -> null
+            _selectedYear.value == yearName -> null
+            else -> yearName
+        }
     }
 
     fun onSemesterSelected() {

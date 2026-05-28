@@ -28,6 +28,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.R
+import com.example.data.local.DownloadEntity
 import com.example.data.model.FileItem
 import com.example.ui.components.IconBadge
 import com.example.ui.components.SectionLabel
@@ -42,14 +45,14 @@ fun BookmarksScreen(
     modifier: Modifier = Modifier
 ) {
     val bookmarkedFiles by viewModel.bookmarkedFiles.collectAsState()
-    val downloadedUrls by viewModel.downloadedUrls.collectAsState()
+    val downloads by viewModel.downloads.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Favoris",
+                        text = stringResource(R.string.tab_bookmarks),
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
                         style = MaterialTheme.typography.titleMedium
@@ -59,7 +62,7 @@ fun BookmarksScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Retour",
+                            contentDescription = stringResource(R.string.back),
                             tint = TextSecondary
                         )
                     }
@@ -70,7 +73,7 @@ fun BookmarksScreen(
         containerColor = Background,
         modifier = modifier
     ) { innerPadding ->
-        if (bookmarkedFiles.isEmpty() && downloadedUrls.isEmpty()) {
+        if (bookmarkedFiles.isEmpty() && downloads.isEmpty()) {
             // Empty state
             Box(
                 modifier = Modifier
@@ -98,7 +101,7 @@ fun BookmarksScreen(
                     }
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(
-                        text = "Aucun élément",
+                        text = stringResource(R.string.no_items),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
@@ -106,7 +109,7 @@ fun BookmarksScreen(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Ajoutez des documents à vos favoris\nou téléchargez-les pour y accéder rapidement.",
+                        text = stringResource(R.string.empty_favorites_desc),
                         fontSize = 14.sp,
                         color = TextSecondary,
                         textAlign = TextAlign.Center,
@@ -122,7 +125,7 @@ fun BookmarksScreen(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            text = "Parcourir les modules",
+                            text = stringResource(R.string.browse_modules),
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -140,7 +143,7 @@ fun BookmarksScreen(
                 // Favorites section
                 if (bookmarkedFiles.isNotEmpty()) {
                     item {
-                        SectionLabel(text = "FAVORIS")
+                        SectionLabel(text = stringResource(R.string.favorites))
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
@@ -160,18 +163,18 @@ fun BookmarksScreen(
                                         } else false
                                     }
                                 ),
-                                backgroundContent = {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(Error.copy(alpha = 0.2f)),
-                                        contentAlignment = Alignment.CenterEnd
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Delete,
-                                            contentDescription = "Supprimer",
-                                            tint = Error,
+                                    backgroundContent = {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(Error.copy(alpha = 0.2f)),
+                                            contentAlignment = Alignment.CenterEnd
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = stringResource(R.string.delete),
+                                                tint = Error,
                                             modifier = Modifier.padding(end = 20.dp)
                                         )
                                     }
@@ -189,34 +192,45 @@ fun BookmarksScreen(
                 }
 
                 // Downloads section
-                if (downloadedUrls.isNotEmpty()) {
+                if (downloads.isNotEmpty()) {
                     item {
                         Spacer(modifier = Modifier.height(16.dp))
-                        SectionLabel(text = "TÉLÉCHARGEMENTS")
+                        SectionLabel(text = stringResource(R.string.downloads))
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
                     items(
-                        items = downloadedUrls.toList(),
-                        key = { it }
-                    ) { url ->
+                        items = downloads,
+                        key = { it.url }
+                    ) { entity ->
+                        val extension = entity.fileName.substringAfterLast('.', "").lowercase()
+                        val (icon, accentColor) = bookmarkFileInfo(extension, "")
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(Surface)
+                                .clickable {
+                                    onFileClick(FileItem(
+                                        id = entity.url,
+                                        moduleId = "",
+                                        name = entity.fileName,
+                                        type = "",
+                                        url = entity.url
+                                    ))
+                                }
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconBadge(
-                                icon = Icons.Default.Download,
-                                accentColor = Success,
-                                containerColor = SuccessBg
+                                icon = icon,
+                                accentColor = accentColor,
+                                containerColor = SurfaceElevated
                             )
                             Spacer(modifier = Modifier.width(14.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Fichier téléchargé",
+                                    text = entity.fileName,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = TextPrimary,
@@ -224,7 +238,7 @@ fun BookmarksScreen(
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = url.substringAfterLast("/"),
+                                    text = entity.filePath,
                                     fontSize = 12.sp,
                                     color = TextSecondary,
                                     maxLines = 1,
@@ -233,12 +247,12 @@ fun BookmarksScreen(
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             IconButton(
-                                onClick = { viewModel.deleteDownload(url) },
+                                onClick = { viewModel.deleteDownload(entity.url) },
                                 modifier = Modifier.size(36.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
-                                    contentDescription = "Supprimer",
+                                    contentDescription = stringResource(R.string.delete),
                                     tint = Error,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -286,7 +300,7 @@ private fun BookmarkRowCard(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "dernièrement ajouté",
+                text = stringResource(R.string.recently_added),
                 fontSize = 12.sp,
                 color = TextSecondary
             )
@@ -298,7 +312,7 @@ private fun BookmarkRowCard(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Retirer",
+                contentDescription = stringResource(R.string.remove),
                 tint = Error,
                 modifier = Modifier.size(20.dp)
             )

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CS Bouira</string>
+    <string name="home_title">Espace Étudiant CS Bouira</string>
+    <string name="search_hint">Rechercher des cours, fichiers, supports pédagogiques…</string>
+    <string name="stats_title">Statistiques des Ressources Éducatives</string>
+    <string name="total_files">Fichiers</string>
+    <string name="total_modules">Modules</string>
+    <string name="total_uploaders">Contributeurs</string>
+    <string name="cached_data_label">Affichage des données en cache local</string>
+    <string name="retry">Réessayer</string>
+    <string name="empty_bookmarks">Vos cours et documents enregistrés apparaissent ici. Appuyez sur l\'icône étoile pour enregistrer un fichier.</string>
+    <string name="no_results">Aucun cours ou module correspondant trouvé.</string>
+    <string name="share_file">Partager la ressource</string>
+    <string name="copy_link">Copier le lien</string>
+    <string name="copied_to_clipboard">Lien copié dans le presse-papiers !</string>
+    <string name="download">Télécharger</string>
+    <string name="open_in_browser">Ouvrir dans le navigateur</string>
+    <string name="explorer_heading">Années &amp; Semestres</string>
+    <string name="files_heading">Fichiers Pédagogiques</string>
+
+    <string name="tab_home">Accueil</string>
+    <string name="tab_search">Rechercher</string>
+    <string name="tab_bookmarks">Favoris</string>
+
+    <string name="modules_count">%1$d modules</string>
+    <string name="files_count">%1$d fichiers pédagogiques</string>
+    <string name="view_online">Aperçu en ligne</string>
+    <string name="file_description">Détails du fichier et options de téléchargement</string>
+
+    <string name="no_internet_msg">Aucune connexion Internet. Le mode hors ligne est actif.</string>
+    <string name="loading_content">Chargement du contenu…</string>
+    <string name="error_fetching">Une erreur s\'est produite</string>
+    <string name="search_prompt">Commencez à taper pour rechercher instantanément les fichiers et cours…</string>
+    <string name="uploader">Envoyé par %1$s</string>
+    <string name="module_desc_fallback">Module complet couvrant la théorie, les exercices pratiques et les évaluations.</string>
+
+    <string name="refresh">Actualiser</string>
+    <string name="search">Recherche</string>
+    <string name="bookmarks">Favoris</string>
+    <string name="university_documents">Documents Universitaires</string>
+    <string name="explore">Explorer →</string>
+    <string name="years_section">ANNÉES</string>
+    <string name="choose_semester">Choisissez un semestre</string>
+    <string name="semester_1">Semestre 1</string>
+    <string name="semester_2">Semestre 2</string>
+    <string name="semester_label">SEMESTRE %1$d</string>
+    <string name="loading_dots">Chargement…</string>
+    <string name="no_modules">Aucune matière</string>
+    <string name="back">Retour</string>
+    <string name="all">Tout</string>
+    <string name="courses">Cours</string>
+    <string name="exams">Examens</string>
+    <string name="summary">Résumé</string>
+    <string name="td_tp">TD &amp; TP</string>
+    <string name="tests">Tests</string>
+    <string name="no_files_in_category">Aucun fichier dans cette catégorie</string>
+    <string name="download_all">Tout télécharger</string>
+    <string name="downloaded">Téléchargé</string>
+    <string name="to_download">Télécharger</string>
+    <string name="favorite">Favori</string>
+    <string name="global_search">Recherche globale</string>
+    <string name="search_files_placeholder">Rechercher des cours, examens, fiches…</string>
+    <string name="start_typing">Commencez à taper pour chercher</string>
+    <string name="no_results_for">Aucun résultat pour « %1$s »</string>
+    <string name="search_hint_detail">Vérifiez votre mot-clé ou élargissez votre recherche (ex : \'POO\', \'cours\', \'examen\').</string>
+    <string name="results_count">Résultats : %1$d</string>
+    <string name="favorites">FAVORIS</string>
+    <string name="downloads">TÉLÉCHARGEMENTS</string>
+    <string name="no_items">Aucun élément</string>
+    <string name="empty_favorites_desc">Ajoutez des documents à vos favoris\nou téléchargez-les pour y accéder rapidement.</string>
+    <string name="browse_modules">Parcourir les modules</string>
+    <string name="recently_added">dernièrement ajouté</string>
+    <string name="remove">Retirer</string>
+    <string name="delete">Supprimer</string>
+    <string name="share">Partager</string>
+    <string name="page_format">Page %1$d</string>
+    <string name="file_not_found">Fichier non trouvé</string>
+    <string name="cannot_read_file">Impossible de lire ce fichier</string>
+
+    <string name="language">Langue</string>
+    <string name="language_english">English</string>
+    <string name="language_french">Français</string>
+    <string name="language_arabic">العربية</string>
+    <string name="previous_file">Fichier précédent</string>
+    <string name="next_file">Fichier suivant</string>
+    <string name="file_index">%1$d / %2$d</string>
+    <string name="zoom_in">Zoom avant</string>
+    <string name="zoom_out">Zoom arrière</string>
+    <string name="zoom_reset">Réinitialiser le zoom</string>
+    <string name="settings">Paramètres</string>
+    <string name="viewer_settings">Lecteur</string>
+    <string name="show_nav_buttons">Boutons de navigation</string>
+    <string name="show_nav_buttons_desc">Afficher les flèches précédant/suivant pour naviguer entre les fichiers</string>
+    <string name="enable_pinch_zoom">Pinch to zoom</string>
+    <string name="enable_pinch_zoom_desc">Zoomer sur les images à deux doigts</string>
+</resources>

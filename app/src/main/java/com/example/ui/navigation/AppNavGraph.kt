@@ -6,6 +6,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -13,6 +15,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.data.model.FileItem
 import com.example.ui.screens.ViewModelFactory
 import com.example.ui.screens.bookmarks.BookmarksScreen
 import com.example.ui.screens.bookmarks.BookmarksViewModel
@@ -26,6 +29,9 @@ import com.example.ui.screens.search.SearchScreen
 import com.example.ui.screens.search.SearchViewModel
 import com.example.ui.screens.viewer.FileViewerScreen
 import com.example.ui.screens.viewer.ViewerViewModel
+import com.example.settings.SettingsScreen
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 @Composable
 fun AppNavGraph(
@@ -50,7 +56,8 @@ fun AppNavGraph(
                     navController.navigate("modules/${Uri.encode(yearName)}/$semester")
                 },
                 onSearchClick = { navController.navigate("search") },
-                onBookmarksClick = { navController.navigate("bookmarks") }
+                onBookmarksClick = { navController.navigate("bookmarks") },
+                onSettingsClick = { navController.navigate("settings") }
             )
         }
 
@@ -95,8 +102,12 @@ fun AppNavGraph(
                 semester = semester,
                 moduleName = moduleName,
                 onFileClick = { file ->
+                    val files = fvm.files.value
+                    val index = files.indexOfFirst { it.id == file.id }.coerceAtLeast(0)
+                    val filesJson = Gson().toJson(files)
                     navController.navigate(
-                        "viewer/${Uri.encode(file.url)}/${Uri.encode(file.name)}"
+                        "viewer/${Uri.encode(file.url)}/${Uri.encode(file.name)}" +
+                            "?filesJson=${Uri.encode(filesJson)}&fileIndex=$index"
                     )
                 },
                 onBackClick = { navController.popBackStack() }
@@ -104,30 +115,53 @@ fun AppNavGraph(
         }
 
         composable(
-            route = "viewer/{url}/{name}",
+            route = "viewer/{url}/{name}?filesJson={filesJson}&fileIndex={fileIndex}",
             arguments = listOf(
                 navArgument("url") { type = NavType.StringType },
-                navArgument("name") { type = NavType.StringType }
+                navArgument("name") { type = NavType.StringType },
+                navArgument("filesJson") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("fileIndex") {
+                    type = NavType.IntType
+                    defaultValue = 0
+                }
             )
         ) { backStackEntry ->
-            val url = Uri.decode(backStackEntry.arguments?.getString("url") ?: "")
-            val name = Uri.decode(backStackEntry.arguments?.getString("name") ?: "")
+            val filesJson = Uri.decode(backStackEntry.arguments?.getString("filesJson") ?: "")
+            val fileIndex = backStackEntry.arguments?.getInt("fileIndex") ?: 0
             val vvm: ViewerViewModel = viewModel(factory = factory)
+
+            if (filesJson.isNotEmpty()) {
+                val type = object : TypeToken<List<FileItem>>() {}.type
+                val files: List<FileItem> = try {
+                    Gson().fromJson(filesJson, type)
+                } catch (_: Exception) {
+                    emptyList()
+                }
+                if (files.isNotEmpty()) {
+                    vvm.setFiles(files, fileIndex)
+                }
+            }
+
             FileViewerScreen(
                 viewModel = vvm,
-                url = url,
-                fileName = name,
                 onBackClick = { navController.popBackStack() }
             )
         }
 
         composable("search") {
             val svm: SearchViewModel = viewModel(factory = factory)
+            val searchResults by svm.searchResults.collectAsState()
             SearchScreen(
                 viewModel = svm,
                 onFileClick = { file ->
+                    val index = searchResults.indexOfFirst { it.id == file.id }.coerceAtLeast(0)
+                    val filesJson = Gson().toJson(searchResults)
                     navController.navigate(
-                        "viewer/${Uri.encode(file.url)}/${Uri.encode(file.name)}"
+                        "viewer/${Uri.encode(file.url)}/${Uri.encode(file.name)}" +
+                            "?filesJson=${Uri.encode(filesJson)}&fileIndex=$index"
                     )
                 },
                 onBackClick = { navController.popBackStack() }
@@ -143,6 +177,12 @@ fun AppNavGraph(
                         "viewer/${Uri.encode(file.url)}/${Uri.encode(file.name)}"
                     )
                 },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable("settings") {
+            SettingsScreen(
                 onBackClick = { navController.popBackStack() }
             )
         }

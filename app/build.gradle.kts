@@ -88,4 +88,6 @@ dependencies {
 
     // DataStore
     implementation(libs.datastore.preferences)
+
+    // PDF Viewer (removed — AndroidPdfViewer 3.0.0-beta.2 doesn't render; using system PdfRenderer instead)
 }

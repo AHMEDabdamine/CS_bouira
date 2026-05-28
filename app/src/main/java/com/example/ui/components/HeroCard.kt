@@ -50,7 +50,7 @@ fun HeroCard(
             )
             .padding(20.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.Top) {
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -78,6 +78,10 @@ fun HeroCard(
                     color = OnPrimary.copy(alpha = 0.7f),
                     fontSize = 13.sp
                 )
+                if (extraContent != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    extraContent()
+                }
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(
@@ -94,10 +98,6 @@ fun HeroCard(
                     fontWeight = FontWeight.SemiBold
                 )
             }
-        }
-        if (extraContent != null) {
-            Spacer(modifier = Modifier.height(12.dp))
-            extraContent()
         }
     }
 }

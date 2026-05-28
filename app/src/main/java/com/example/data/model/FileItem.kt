@@ -10,6 +10,7 @@ data class FileItem(
     val name: String,
     val type: String, // "course", "exams", "resume", "TD&TP", "tests"
     val url: String,
+    val downloadUrl: String = "",
     val size: Long? = null,
     val uploadedAt: String? = null,
     val uploader: String? = null

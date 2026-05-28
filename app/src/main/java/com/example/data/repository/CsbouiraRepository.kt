@@ -1,6 +1,10 @@
 package com.example.data.repository
 
+import android.content.ContentValues
 import android.content.Context
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import com.example.data.HardcodedData
 import com.example.data.api.CsbouiraApi
 import com.example.data.api.DriveFile
@@ -130,6 +134,7 @@ class CsbouiraRepository(
                     name = df.name,
                     type = fileType,
                     url = df.previewLink,
+                    downloadUrl = df.downloadLink,
                     size = null,
                     uploadedAt = null,
                     uploader = null
@@ -157,6 +162,7 @@ class CsbouiraRepository(
                                 id = "${yearName}_${semKey}_${modName}_${df.name}",
                                 moduleId = modName, name = df.name,
                                 type = fileType, url = df.previewLink,
+                                downloadUrl = df.downloadLink,
                                 size = null, uploadedAt = null, uploader = null
                             ))
                         }
@@ -191,49 +197,76 @@ class CsbouiraRepository(
 
     fun getBookmarkedFiles(): Flow<List<FileItem>> {
         return dao.getBookmarkedFilesFlow().map { list ->
-            list.map { FileItem(it.id, it.moduleId, it.name, it.type, it.url, null, null, null) }
+            list.map { FileItem(it.id, it.moduleId, it.name, it.type, it.url, size = null, uploadedAt = null, uploader = null) }
         }
     }
 
     suspend fun downloadFile(fileItem: FileItem, onProgress: (Float) -> Unit = {}): String? {
         val existing = dao.getDownload(fileItem.url)
         if (existing != null) {
-            val file = File(existing.filePath)
-            if (file.exists()) return existing.filePath
+            val f = File(existing.filePath)
+            if (f.exists()) return existing.filePath
+            dao.deleteDownload(fileItem.url)
         }
 
-        val dir = File(appContext.filesDir, "downloads")
-        dir.mkdirs()
-        val extension = fileItem.name.substringAfterLast('.', "pdf")
-        val fileName = "${fileItem.id}.$extension"
-        val file = File(dir, fileName)
+        val fileName = fileItem.name.ifBlank { "document.pdf" }
 
         return withContext(Dispatchers.IO) {
             try {
-                val request = Request.Builder().url(fileItem.url).build()
-                val response = downloadClient.newCall(request).execute()
-                val body = response.body ?: return@withContext null
-                val totalBytes = body.contentLength()
-                var downloadedBytes = 0L
+                val downloadUrl = toDownloadUrl(fileItem.downloadUrl.ifEmpty { fileItem.url })
+                val fileBytes = downloadWithRedirectHandling(downloadUrl, onProgress) ?: return@withContext null
 
-                body.byteStream().use { input ->
-                    FileOutputStream(file).use { output ->
-                        val buffer = ByteArray(8192)
-                        var bytesRead: Int
-                        while (input.read(buffer).also { bytesRead = it } != -1) {
-                            output.write(buffer, 0, bytesRead)
-                            downloadedBytes += bytesRead
-                            if (totalBytes > 0) {
-                                onProgress(downloadedBytes.toFloat() / totalBytes)
+                // Always save to internal storage first (no permissions needed, always works)
+                val saveDir = File(appContext.filesDir, "downloads")
+                saveDir.mkdirs()
+                val localFile = File(saveDir, fileName)
+                localFile.writeBytes(fileBytes)
+
+                // Also save to public Downloads folder for user visibility (best-effort)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    try {
+                        val mimeType = when (fileName.substringAfterLast('.', "").lowercase()) {
+                            "pdf" -> "application/pdf"
+                            "jpg", "jpeg" -> "image/jpeg"
+                            "png" -> "image/png"
+                            "gif" -> "image/gif"
+                            "doc", "docx" -> "application/msword"
+                            "ppt", "pptx" -> "application/vnd.ms-powerpoint"
+                            "xls", "xlsx" -> "application/vnd.ms-excel"
+                            "zip" -> "application/zip"
+                            "mp4" -> "video/mp4"
+                            "mp3" -> "audio/mpeg"
+                            "txt" -> "text/plain"
+                            else -> "application/octet-stream"
+                        }
+
+                        val contentValues = ContentValues().apply {
+                            put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                            put(MediaStore.Downloads.MIME_TYPE, mimeType)
+                            put(MediaStore.Downloads.IS_PENDING, 0)
+                        }
+
+                        val resolver = appContext.contentResolver
+                        val publicUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                        if (publicUri != null) {
+                            resolver.openOutputStream(publicUri)?.use { output ->
+                                output.write(fileBytes)
                             }
                         }
-                    }
+                    } catch (_: Exception) { }
+                } else {
+                    try {
+                        val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        val appDir = File(dir, "CSBouira")
+                        appDir.mkdirs()
+                        val publicFile = File(appDir, fileName)
+                        publicFile.writeBytes(fileBytes)
+                    } catch (_: Exception) { }
                 }
 
-                dao.insertDownload(DownloadEntity(fileItem.url, file.absolutePath, fileName, System.currentTimeMillis()))
-                file.absolutePath
+                dao.insertDownload(DownloadEntity(fileItem.url, localFile.absolutePath, fileName, System.currentTimeMillis()))
+                localFile.absolutePath
             } catch (e: Exception) {
-                file.delete()
                 null
             }
         }
@@ -262,5 +295,51 @@ class CsbouiraRepository(
             result.addAll(collectFilesRecursive(sub))
         }
         return result
+    }
+
+    private fun downloadWithRedirectHandling(url: String, onProgress: (Float) -> Unit): ByteArray? {
+        var currentUrl = url
+        repeat(3) {
+            val request = Request.Builder().url(currentUrl).build()
+            val response = downloadClient.newCall(request).execute()
+            val body = response.body ?: return@repeat
+            val contentType = body.contentType()
+
+            // Google Drive warning pages always have Content-Type: text/html
+            val isWarningPage = contentType?.let { it.type == "text" && it.subtype == "html" } == true
+
+            if (!isWarningPage) {
+                val bytes = body.bytes()
+                if (bytes.isNotEmpty()) {
+                    onProgress(1f)
+                    response.close()
+                    return bytes
+                }
+                response.close()
+                return null
+            }
+
+            // Extract confirm token from the warning page and retry
+            val htmlStr = body.string()
+            val confirmMatch = Regex("""confirm=([a-zA-Z0-9_-]+)""").find(htmlStr)
+            val id = url.substringAfter("id=").substringBefore("&").ifEmpty {
+                url.substringAfter("id=")
+            }
+            currentUrl = "https://drive.google.com/uc?export=download" +
+                "&confirm=${confirmMatch?.groupValues?.getOrNull(1) ?: "t"}&id=$id"
+
+            response.close()
+        }
+        return null
+    }
+
+    companion object {
+        fun toDownloadUrl(url: String): String {
+            val fileId = url.substringAfter("/d/").substringBefore("/")
+            if (fileId.isNotBlank() && url.contains("drive.google.com")) {
+                return "https://drive.google.com/uc?export=download&id=$fileId"
+            }
+            return url
+        }
     }
 }
